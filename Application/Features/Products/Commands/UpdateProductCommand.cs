@@ -1,4 +1,6 @@
-﻿using Application.Exceptions;
+﻿using Application.DTOs.Product;
+using Application.Exceptions;
+using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using AutoMapper;
@@ -22,9 +24,9 @@ namespace Application.Features.Products.Commands
         public string? Description { get; set; }
         public int ProductCategoryId { get; set; }
         public string Manufacturer { get; set; }
-        public List<string>? Images { get; set; }
         public bool IsActive { get; set; }
     }
+
     public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Response<int>>
     {
         private readonly IProductRepositoryAsync _productRepository;
@@ -49,32 +51,10 @@ namespace Application.Features.Products.Commands
             else
             {
                 _mapper.Map(request, product);
-                UpdateProductImages(product, request.Images);
 
                 await _productRepository.UpdateAsync(product);
                 return new Response<int>(product.Id);
             }
-        }
-
-        private void UpdateProductImages(Product product, List<string>? imageUrls)
-        {
-            if (imageUrls == null)
-            {
-                return;
-            }
-
-            var updatedImages = imageUrls
-                .Select((url, index) => new ProductImage
-                {
-                    ProductId = product.Id,
-                    ImageUrl = url,
-                    IsPrimary = (index == 0)
-                })
-                .ToList();
-
-            product.Images.Clear();
-
-            product.Images.AddRange(updatedImages);
         }
     }
 }

@@ -51,8 +51,8 @@ namespace WebApi
             app.UseSwaggerExtension();
             app.UseErrorHandlingMiddleware();
             app.UseHealthChecks("/health");
-
-           app.UseEndpoints(endpoints =>
+            app.UseStaticFiles();
+            app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });

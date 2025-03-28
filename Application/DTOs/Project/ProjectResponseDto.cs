@@ -12,7 +12,7 @@ namespace Application.DTOs.Project
         public DateTime Date { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public List<string> Images { get; set; }
+        public List<string> ImageUrls { get; set; }
         public bool IsActive { get; set; }
     }
 }

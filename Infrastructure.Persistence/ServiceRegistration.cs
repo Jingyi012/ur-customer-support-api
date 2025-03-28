@@ -3,6 +3,7 @@ using Application.Interfaces.Repositories;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.Repository;
+using Infrastructure.Persistence.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +30,12 @@ namespace Infrastructure.Persistence
             services.AddScoped<INewsRepositoryAsync, NewsRepositoryAsync>();
             services.AddScoped<IEnquiryRepositoryAsync, EnquiryRepositoryAsync>();
             services.AddScoped<IEnquiryHistoryRepositoryAsync, EnquiryHistoryRepositoryAsync>();
+            services.AddScoped<IProductImageRepositoryAsync, ProductImageRepositoryAsync>();
+            services.AddScoped<IProjectImageRepositoryAsync, ProjectImageRepositoryAsync>();
+            services.AddScoped<INewsImageRepositoryAsync, NewsImageRepositoryAsync>();
             #endregion
+
+            services.AddScoped<IFileService, FileService>();
         }
     }
 }

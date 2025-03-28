@@ -12,8 +12,7 @@ namespace Domain.Entities
     {
         public int ProductId { get; set; }
         public string ImageUrl { get; set; }
-        public bool IsPrimary { get; set; } = false;
-        [JsonIgnore]
+        public int Order {  get; set; }
         public Product Product { get; set; }
     }
 }

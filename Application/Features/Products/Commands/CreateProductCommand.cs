@@ -17,7 +17,6 @@ namespace Application.Features.Products.Commands
         public string? Description { get; set; }
         public int ProductCategoryId { get; set; }
         public string Manufacturer { get; set; }
-        public List<string>? Images { get; set; }
         public bool IsActive { get; set; } = true;
     }
     public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
@@ -63,20 +62,6 @@ namespace Application.Features.Products.Commands
         public async Task<Response<int>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
             var product = _mapper.Map<Product>(request);
-
-            var validImages = request.Images?
-                .Where(url => !string.IsNullOrWhiteSpace(url))
-                .Distinct()
-                .ToList();
-
-            if (validImages != null && validImages.Count > 0)
-            {
-                product.Images = validImages.Select((url, index) => new ProductImage
-                {
-                    ImageUrl = url,
-                    IsPrimary = index == 0
-                }).ToList();
-            }
 
             await _productRepository.AddAsync(product);
             return new Response<int>(product.Id);

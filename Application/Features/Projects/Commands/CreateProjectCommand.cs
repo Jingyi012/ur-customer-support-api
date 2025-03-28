@@ -19,7 +19,6 @@ namespace Application.Features.Projects.Commands
         public DateTime Date { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public List<string>? Images { get; set; }
         public bool IsActive { get; set; } = true;
     }
     public class CreateProjectCommandValidator : AbstractValidator<CreateProjectCommand>
@@ -56,20 +55,6 @@ namespace Application.Features.Projects.Commands
         public async Task<Response<int>> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
         {
             var project = _mapper.Map<Project>(request);
-
-            var validImages = request.Images?
-                .Where(url => !string.IsNullOrWhiteSpace(url))
-                .Distinct()
-                .ToList();
-
-            if (validImages != null && validImages.Count > 0)
-            {
-                project.Images = validImages.Select((url, index) => new ProjectImage
-                {
-                    ImageUrl = url,
-                    IsPrimary = index == 0
-                }).ToList();
-            }
 
             await _projectRepository.AddAsync(project);
             return new Response<int>(project.Id);

@@ -26,7 +26,6 @@ namespace WebApi.Controllers.v1
 
         // POST api/<controller>
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> Post(CreateEnquiryCommand command)
         {
             return Ok(await Mediator.Send(command));

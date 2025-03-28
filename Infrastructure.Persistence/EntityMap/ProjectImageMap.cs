@@ -21,9 +21,8 @@ namespace Infrastructure.Persistence.EntityMap
                 .IsRequired()
                 .HasMaxLength(255);
 
-            builder.Property(pi => pi.IsPrimary)
-                .IsRequired()
-                .HasDefaultValue(false);
+            builder.Property(pi => pi.Order)
+                .IsRequired();
 
             builder.HasOne(pi => pi.Project)
                 .WithMany(p => p.Images)

@@ -20,8 +20,11 @@ namespace Application.Mappings
     {
         public GeneralProfile()
         {
+            var prefix = "https://localhost:9001";
+
             CreateMap<Product, ProductResponseDto>()
-                .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images.Select(img => img.ImageUrl).ToList()));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => prefix + img.ImageUrl).ToList()));
+
             CreateMap<CreateProductCommand, Product>();
             CreateMap<UpdateProductCommand, Product>();
             CreateMap<GetAllProductsQuery, GetAllProductsParameter>();
@@ -29,13 +32,13 @@ namespace Application.Mappings
             CreateMap<ProductCategory, ProductCategoryResponseDto>();
 
             CreateMap<Project, ProjectResponseDto>()
-                .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images.Select(img => img.ImageUrl).ToList()));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => img.ImageUrl).ToList()));
             CreateMap<CreateProjectCommand, Project>();
             CreateMap<UpdateProjectCommand, Project>();
             CreateMap<GetAllProjectsQuery, GetAllProjectsParameter>();
 
             CreateMap<News, NewsResponseDto>()
-                .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images.Select(img => img.ImageUrl).ToList()));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => img.ImageUrl).ToList()));
             CreateMap<CreateNewsCommand, News>();
             CreateMap<UpdateNewsCommand, News>();
             CreateMap<GetAllNewsQuery, GetAllNewsParameter>();

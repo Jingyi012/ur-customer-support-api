@@ -38,13 +38,22 @@ namespace Infrastructure.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public override async Task<Project> GetByIdAsync(int id)
+        {
+            return await _projects
+                .Include(p => p.Images.OrderBy(img => img.Order))
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
         public async Task<PagedResponse<List<Project>>> GetAllProjects(GetAllProjectsParameter filter)
         {
-            var query = _projects.AsQueryable();
+            var query = _projects
+                .Include(p => p.Images.OrderBy(img => img.Order))
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filter.Name))
             {
-                query = query.Where(u => u.Name.Contains(filter.Name, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.Name.ToLower().Contains(filter.Name.ToLower()));
             }
 
             if (filter.IsActive.HasValue)

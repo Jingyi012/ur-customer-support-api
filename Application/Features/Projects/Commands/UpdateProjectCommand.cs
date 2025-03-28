@@ -20,7 +20,6 @@ namespace Application.Features.Projects.Commands
         public DateTime Date { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public List<string>? Images { get; set; }
         public bool IsActive { get; set; }
     }
     public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand, Response<int>>
@@ -43,31 +42,9 @@ namespace Application.Features.Projects.Commands
             else
             {
                 _mapper.Map(request, project);
-                UpdateProjectImages(project, request.Images);
                 await _projectRepository.UpdateAsync(project);
                 return new Response<int>(project.Id);
             }
-        }
-
-        private void UpdateProjectImages(Project project, List<string>? imageUrls)
-        {
-            if (imageUrls == null)
-            {
-                return;
-            }
-
-            var updatedImages = imageUrls
-                .Select((url, index) => new ProjectImage
-                {
-                    ProjectId = project.Id,
-                    ImageUrl = url,
-                    IsPrimary = (index == 0)
-                })
-                .ToList();
-
-            project.Images.Clear();
-
-            project.Images.AddRange(updatedImages);
         }
     }
 }

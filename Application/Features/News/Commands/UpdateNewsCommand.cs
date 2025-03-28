@@ -17,7 +17,6 @@ namespace Application.Features.News.Commands
         public int Id { get; set; }
         public string Title { get; set; }
         public string? Description { get; set; }
-        public List<string>? Images { get; set; }
         public DateTime Date { get; set; }
         public bool IsActive { get; set; }
     }
@@ -41,33 +40,10 @@ namespace Application.Features.News.Commands
             else
             {
                 _mapper.Map(request, news);
-                UpdateNewsImages(news, request.Images);
-
 
                 await _newsRepository.UpdateAsync(news);
                 return new Response<int>(news.Id);
             }
-        }
-
-        private void UpdateNewsImages(Domain.Entities.News news, List<string>? imageUrls)
-        {
-            if (imageUrls == null)
-            {
-                return;
-            }
-
-            var updatedImages = imageUrls
-                .Select((url, index) => new NewsImage
-                {
-                    NewsId = news.Id,
-                    ImageUrl = url,
-                    IsPrimary = (index == 0)
-                })
-                .ToList();
-
-            news.Images.Clear();
-
-            news.Images.AddRange(updatedImages);
         }
     }
 }

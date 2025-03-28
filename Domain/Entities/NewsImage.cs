@@ -11,7 +11,7 @@ namespace Domain.Entities
     {
         public int NewsId { get; set; }
         public string ImageUrl { get; set; }
-        public bool IsPrimary { get; set; } = false;
+        public int Order { get; set; }
         public News News { get; set; }
     }
 }

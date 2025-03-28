@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Application.Features.News.Commands;
 using Application.Features.News.Queries;
+using Application.Features.ProductImages.Queries;
+using Application.Features.NewsImages.Commands;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,6 +52,37 @@ namespace WebApi.Controllers.v1
         public async Task<IActionResult> Delete(int id)
         {
             return Ok(await Mediator.Send(new DeleteNewsByIdCommand { Id = id }));
+        }
+
+        // GET api/<controller>/5/images
+        [HttpGet("{id}/images")]
+        public async Task<IActionResult> GetImagesById(int id)
+        {
+            return Ok(await Mediator.Send(new GetImagesByCategoryAndItemIdQueries { ItemId = id, Category = "News" }));
+        }
+
+        // POST api/<controller>
+        [HttpPost("images")]
+        [Authorize]
+        public async Task<IActionResult> AddImages([FromForm] NewsImageUploadCommand command)
+        {
+            return Ok(await Mediator.Send(command));
+        }
+
+        // PUT api/<controller>/5
+        [HttpPut("images/reorder")]
+        [Authorize]
+        public async Task<IActionResult> ReorderImages(NewsImageReorderCommand command)
+        {
+            return Ok(await Mediator.Send(command));
+        }
+
+        // DELETE api/<controller>/5
+        [HttpDelete("images")]
+        [Authorize]
+        public async Task<IActionResult> DeleteImages([FromQuery] DeleteNewsImageCommand command)
+        {
+            return Ok(await Mediator.Send(command));
         }
     }
 }

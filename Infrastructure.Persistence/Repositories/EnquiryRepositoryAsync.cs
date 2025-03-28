@@ -28,22 +28,22 @@ namespace Infrastructure.Persistence.Repositories
 
             if (!string.IsNullOrWhiteSpace(filter.Name))
             {
-                query = query.Where(u => u.Name.Contains(filter.Name, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.Name.ToLower().Contains(filter.Name.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.CompanyName))
             {
-                query = query.Where(u => u.CompanyName.Contains(filter.CompanyName, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.CompanyName.ToLower().Contains(filter.CompanyName.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Email))
             {
-                query = query.Where(u => u.CompanyName.Contains(filter.Email, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.Email.ToLower().Contains(filter.Email.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Phone))
             {
-                query = query.Where(u => u.CompanyName.Contains(filter.Phone, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.Phone.ToLower().Contains(filter.Phone.ToLower()));
             }
 
             if (filter.Status.HasValue)
@@ -58,7 +58,7 @@ namespace Infrastructure.Persistence.Repositories
 
             if (!string.IsNullOrWhiteSpace(filter.AssignedTo))
             {
-                query = query.Where(u => u.CompanyName.Contains(filter.AssignedTo, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.AssignedTo.ToLower().Contains(filter.AssignedTo.ToLower()));
             }
 
             var totalCount = await query.CountAsync();

@@ -37,13 +37,22 @@ namespace Infrastructure.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public override async Task<News> GetByIdAsync(int id)
+        {
+            return await _news
+                .Include(p => p.Images.OrderBy(img => img.Order))
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
         public async Task<PagedResponse<List<News>>> GetAllNews(GetAllNewsParameter filter)
         {
-            var query = _news.AsQueryable();
+            var query = _news
+                .Include(p => p.Images.OrderBy(img => img.Order))
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filter.Title))
             {
-                query = query.Where(u => u.Title.Contains(filter.Title, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.Title.ToLower().Contains(filter.Title.ToLower()));
             }
 
             if(filter.Year.HasValue)

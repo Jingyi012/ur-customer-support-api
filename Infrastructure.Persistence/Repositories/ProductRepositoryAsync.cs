@@ -43,24 +43,24 @@ namespace Infrastructure.Persistence.Repositories
         public override async Task<Product> GetByIdAsync(int id)
         {
             return await _products
-                .Include(p => p.Images.OrderBy(img => !img.IsPrimary).ThenBy(img => img.Id))
+                .Include(p => p.Images.OrderBy(img => img.Order))
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<PagedResponse<List<Product>>> GetAllProducts(GetAllProductsParameter filter)
         {
             var query = _products
-                .Include(p => p.Images.OrderBy(img => !img.IsPrimary).ThenBy(img => img.Id))
+                .Include(p => p.Images.OrderBy(img => img.Order))
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filter.Name))
             {
-                query = query.Where(u => u.Name.Contains(filter.Name, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.Name.ToLower().Contains(filter.Name.ToLower()));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Manufacturer))
             {
-                query = query.Where(u => u.Manufacturer.Contains(filter.Manufacturer, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(u => u.Manufacturer.ToLower().Contains(filter.Manufacturer.ToLower()));
             }
 
             if (filter.ProductCategoryId.HasValue)

@@ -16,7 +16,6 @@ namespace Application.Features.News.Commands
     {
         public string Title { get; set; }
         public string? Description { get; set; }
-        public List<string>? Images { get; set; }
         public DateTime Date { get; set; }
         public bool IsActive { get; set; } = true;
     }
@@ -50,19 +49,6 @@ namespace Application.Features.News.Commands
         {
             var news = _mapper.Map<Domain.Entities.News>(request);
 
-            var validImages = request.Images?
-                .Where(url => !string.IsNullOrWhiteSpace(url))
-                .Distinct()
-                .ToList();
-
-            if (validImages != null && validImages.Count > 0)
-            {
-                news.Images = validImages.Select((url, index) => new NewsImage
-                {
-                    ImageUrl = url,
-                    IsPrimary = index == 0
-                }).ToList();
-            }
             await _newsRepository.AddAsync(news);
             return new Response<int>(news.Id);
         }

@@ -1,4 +1,6 @@
 ﻿using System.Threading.Tasks;
+using Application.Features.ProductImages.Commands;
+using Application.Features.ProductImages.Queries;
 using Application.Features.Products.Commands;
 using Application.Features.Products.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -52,6 +54,37 @@ namespace WebApi.Controllers.v1
         public async Task<IActionResult> Delete(int id)
         {
             return Ok(await Mediator.Send(new DeleteProductByIdCommand { Id = id }));
+        }
+
+        // GET api/<controller>/5/images
+        [HttpGet("{id}/images")]
+        public async Task<IActionResult> GetImagesById(int id)
+        {
+            return Ok(await Mediator.Send(new GetImagesByCategoryAndItemIdQueries { ItemId = id, Category = "Product" }));
+        }
+
+        // POST api/<controller>
+        [HttpPost("images")]
+        [Authorize]
+        public async Task<IActionResult> AddImages([FromForm] ProductImageUploadCommand command)
+        {
+            return Ok(await Mediator.Send(command));
+        }
+
+        // PUT api/<controller>/5
+        [HttpPut("images/reorder")]
+        [Authorize]
+        public async Task<IActionResult> ReorderImages(ProductImageReorderCommand command)
+        {
+            return Ok(await Mediator.Send(command));
+        }
+
+        // DELETE api/<controller>/5
+        [HttpDelete("images")]
+        [Authorize]
+        public async Task<IActionResult> DeleteImages([FromQuery] DeleteProductImageCommand command)
+        {
+            return Ok(await Mediator.Send(command));
         }
     }
 }
