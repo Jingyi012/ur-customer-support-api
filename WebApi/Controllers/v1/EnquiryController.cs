@@ -51,7 +51,7 @@ namespace WebApi.Controllers.v1
             return Ok(await Mediator.Send(new DeleteEnquiryByIdCommand { Id = id }));
         }
 
-        [HttpGet("/history/{enquiryId}")]
+        [HttpGet("history/{enquiryId}")]
         public async Task<IActionResult> GetEnquiryHistory(int enquiryId)
         {
             return Ok(await Mediator.Send(new GetEnquiryHistoryQuery { EnquiryId = enquiryId }));
