@@ -12,16 +12,15 @@ using Application.Features.Projects.Commands;
 using Application.Features.Projects.Queries;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Settings;
 using System.Linq;
 
 namespace Application.Mappings
 {
     public class GeneralProfile : Profile
     {
-        public GeneralProfile()
+        public GeneralProfile(string prefix)
         {
-            var prefix = "https://localhost:9001";
-
             CreateMap<Product, ProductResponseDto>()
                 .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => prefix + img.ImageUrl).ToList()));
 
@@ -32,17 +31,18 @@ namespace Application.Mappings
             CreateMap<ProductCategory, ProductCategoryResponseDto>();
 
             CreateMap<Project, ProjectResponseDto>()
-                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => img.ImageUrl).ToList()));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => prefix + img.ImageUrl).ToList()));
             CreateMap<CreateProjectCommand, Project>();
             CreateMap<UpdateProjectCommand, Project>();
             CreateMap<GetAllProjectsQuery, GetAllProjectsParameter>();
 
             CreateMap<News, NewsResponseDto>()
-                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => img.ImageUrl).ToList()));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => prefix + img.ImageUrl).ToList()));
             CreateMap<CreateNewsCommand, News>();
             CreateMap<UpdateNewsCommand, News>();
             CreateMap<GetAllNewsQuery, GetAllNewsParameter>();
 
+            CreateMap<Enquiry, EnquiryResponseDto>();
             CreateMap<CreateEnquiryCommand,  Enquiry>();
             CreateMap<UpdateEnquiryCommand, Enquiry>();
             CreateMap<GetAllEnquiryQuery, GetAllEnquiryParameter>();
