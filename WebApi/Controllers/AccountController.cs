@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Application.DTOs.Account;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,9 +15,12 @@ namespace WebApi.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
-        public AccountController(IAccountService accountService)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        public AccountController(IAccountService accountService, IAuthenticatedUserService authenticatedUserService)
         {
             _accountService = accountService;
+            _authenticatedUserService = authenticatedUserService;
+
         }
         [HttpPost("authenticate")]
         public async Task<IActionResult> AuthenticateAsync(AuthenticationRequest request)
@@ -53,6 +57,24 @@ namespace WebApi.Controllers
                 return Request.Headers["X-Forwarded-For"];
             else
                 return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+        }
+
+        [HttpPost("refresh")]
+        [Authorize]
+        public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto request)
+        {
+            var userId = _authenticatedUserService.UserId ?? null;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("Failed to refresh jwtoken");
+            }
+            RefreshTokenRequest model = new RefreshTokenRequest
+            {
+                UserId = userId,
+                RefreshToken = request.RefreshToken
+            };
+
+            return Ok(await _accountService.RefreshTokenAsync(model, GenerateIPAddress()));
         }
     }
 }

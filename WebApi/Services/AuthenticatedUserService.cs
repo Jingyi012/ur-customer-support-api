@@ -12,7 +12,7 @@ namespace WebApi.Services
     {
         public AuthenticatedUserService(IHttpContextAccessor httpContextAccessor)
         {
-            UserId = httpContextAccessor.HttpContext?.User?.FindFirstValue("sub"); // change to user name
+            UserId = httpContextAccessor.HttpContext?.User?.FindFirstValue("uid");
         }
 
         public string UserId { get; }

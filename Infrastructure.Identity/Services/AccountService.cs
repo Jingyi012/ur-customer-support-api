@@ -3,7 +3,6 @@ using Application.Exceptions;
 using Application.Interfaces;
 using Application.Wrappers;
 using Domain.Settings;
-using Infrastructure.Identity.Helpers;
 using Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
@@ -19,6 +18,7 @@ using System.Text;
 using Application.Enums;
 using System.Threading.Tasks;
 using Application.DTOs.Email;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Identity.Services
 {
@@ -61,17 +61,18 @@ namespace Infrastructure.Identity.Services
             {
                 throw new ApiException($"Account Not Confirmed for '{request.Email}'.");
             }
-            JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
+
+            var tokenResponse = await GenerateTokensAndUpdateUser(user, ipAddress);
+
             AuthenticationResponse response = new AuthenticationResponse();
             response.Id = user.Id;
-            response.JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+            response.JWToken = tokenResponse.Token;
             response.Email = user.Email;
             response.UserName = user.UserName;
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
             response.Roles = rolesList.ToList();
             response.IsVerified = user.EmailConfirmed;
-            var refreshToken = GenerateRefreshToken(ipAddress);
-            response.RefreshToken = refreshToken.Token;
+            response.RefreshToken = tokenResponse.RefreshToken;
             return new Response<AuthenticationResponse>(response, $"Authenticated {user.UserName}");
         }
 
@@ -110,52 +111,6 @@ namespace Infrastructure.Identity.Services
             }
         }
 
-        private async Task<JwtSecurityToken> GenerateJWToken(ApplicationUser user)
-        {
-            var userClaims = await _userManager.GetClaimsAsync(user);
-            var roles = await _userManager.GetRolesAsync(user);
-
-            var roleClaims = new List<Claim>();
-
-            for (int i = 0; i < roles.Count; i++)
-            {
-                roleClaims.Add(new Claim("roles", roles[i]));
-            }
-
-            string ipAddress = IpHelper.GetIpAddress();
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("uid", user.Id),
-                new Claim("ip", ipAddress)
-            }
-            .Union(userClaims)
-            .Union(roleClaims);
-
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
-            var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
-
-            var jwtSecurityToken = new JwtSecurityToken(
-                issuer: _jwtSettings.Issuer,
-                audience: _jwtSettings.Audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
-                signingCredentials: signingCredentials);
-            return jwtSecurityToken;
-        }
-
-        private string RandomTokenString()
-        {
-            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
-            var randomBytes = new byte[40];
-            rngCryptoServiceProvider.GetBytes(randomBytes);
-            // convert random bytes to hex string
-            return BitConverter.ToString(randomBytes).Replace("-", "");
-        }
-        
         private async Task<string> SendVerificationEmail(ApplicationUser user, string origin)
         {
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -181,17 +136,6 @@ namespace Infrastructure.Identity.Services
             {
                 throw new ApiException($"An error occured while confirming {user.Email}.");
             }
-        }
-
-        private RefreshToken GenerateRefreshToken(string ipAddress)
-        {
-            return new RefreshToken
-            {
-                Token = RandomTokenString(),
-                Expires = DateTime.UtcNow.AddDays(7),
-                Created = DateTime.UtcNow,
-                CreatedByIp = ipAddress
-            };
         }
 
         public async Task ForgotPassword(ForgotPasswordRequest model, string origin)
@@ -227,6 +171,91 @@ namespace Infrastructure.Identity.Services
                 throw new ApiException($"Error occured while reseting the password.");
             }
         }
-    }
 
+        public async Task<Response<TokenResponse>> RefreshTokenAsync(RefreshTokenRequest request, string ipAddress)
+        {
+            var user = await _userManager.FindByIdAsync(request.UserId);
+            if (user is null)
+            {
+                throw new ApiException("No user found");
+            }
+
+            if (user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                throw new ApiException("Invalid Refresh Token");
+            }
+
+            return new Response<TokenResponse>(await GenerateTokensAndUpdateUser(user, ipAddress));
+        }
+
+
+        private async Task<TokenResponse> GenerateTokensAndUpdateUser(ApplicationUser user, string ipAddress)
+        {
+            string jwtoken = await GenerateJwt(user, ipAddress);
+
+            var newRefreshToken = GenerateRefreshToken();
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            await _userManager.UpdateAsync(user);
+
+            return new TokenResponse(jwtoken, newRefreshToken);
+        }
+
+        private async Task<string> GenerateJwt(ApplicationUser user, string ipAddress) =>
+            GenerateEncryptedToken(GetSigningCredentials(), await GetClaims(user, ipAddress));
+
+        private SigningCredentials GetSigningCredentials()
+        {
+            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
+            var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
+            return signingCredentials;
+        }
+
+        private string GenerateEncryptedToken(SigningCredentials signingCredentials, IEnumerable<Claim> claims)
+        {
+            var token = new JwtSecurityToken(
+               claims: claims,
+               expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
+               signingCredentials: signingCredentials,
+               issuer: _jwtSettings.Issuer,
+               audience: _jwtSettings.Audience
+               );
+            var tokenHandler = new JwtSecurityTokenHandler();
+            return tokenHandler.WriteToken(token);
+        }
+        private async Task<List<Claim>> GetClaims(ApplicationUser user, string ipAddress)
+        {
+            var userClaims = await _userManager.GetClaimsAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var roleClaims = new List<Claim>();
+
+            for (int i = 0; i < roles.Count; i++)
+            {
+                roleClaims.Add(new Claim("roles", roles[i]));
+            }
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("uid", user.Id),
+                new Claim("ip", ipAddress)
+            }
+            .Union(userClaims)
+            .Union(roleClaims);
+
+            return claims.ToList();
+        }
+
+        private static string GenerateRefreshToken()
+        {
+            byte[] randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+    }
 }

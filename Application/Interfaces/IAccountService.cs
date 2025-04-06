@@ -4,6 +4,7 @@ using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application.Interfaces
@@ -15,5 +16,6 @@ namespace Application.Interfaces
         Task<Response<string>> ConfirmEmailAsync(string userId, string code);
         Task ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<Response<string>> ResetPassword(ResetPasswordRequest model);
+        Task<Response<TokenResponse>> RefreshTokenAsync(RefreshTokenRequest request, string ipAddress);
     }
 }
