@@ -23,7 +23,19 @@ namespace Infrastructure.Persistence.Services
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
 
-            string uniqueFileName = $"{Guid.NewGuid()}_{fileName}{fileExtension}";
+            string sanitizedFileName = string.Concat(fileName.Split(Path.GetInvalidFileNameChars()))
+                                      .Trim().Replace(" ", "_"); ;
+
+            if (string.IsNullOrWhiteSpace(sanitizedFileName))
+            {
+                sanitizedFileName = "file";
+            }
+
+            string timestamp = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+
+            string shortGuid = Guid.NewGuid().ToString("N").Substring(0, 8);
+
+            string uniqueFileName = $"{timestamp}_{sanitizedFileName}_{shortGuid}{fileExtension}";
 
             string safeFolder = folder.TrimStart('/');
 

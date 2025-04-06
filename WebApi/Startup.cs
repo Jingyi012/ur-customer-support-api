@@ -22,7 +22,6 @@ namespace WebApi
         }
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddApplicationLayer();
             services.AddApplicationLayer(_config);
             services.AddIdentityInfrastructure(_config);
             services.AddPersistenceInfrastructure(_config);
