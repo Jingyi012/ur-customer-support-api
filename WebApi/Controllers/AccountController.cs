@@ -15,11 +15,9 @@ namespace WebApi.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
-        private readonly IAuthenticatedUserService _authenticatedUserService;
-        public AccountController(IAccountService accountService, IAuthenticatedUserService authenticatedUserService)
+        public AccountController(IAccountService accountService)
         {
             _accountService = accountService;
-            _authenticatedUserService = authenticatedUserService;
 
         }
         [HttpPost("authenticate")]
@@ -60,20 +58,8 @@ namespace WebApi.Controllers
         }
 
         [HttpPost("refresh")]
-        [Authorize]
-        public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto request)
+        public async Task<IActionResult> RefreshToken(RefreshTokenRequest model)
         {
-            var userId = _authenticatedUserService.UserId ?? null;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return BadRequest("Failed to refresh jwtoken");
-            }
-            RefreshTokenRequest model = new RefreshTokenRequest
-            {
-                UserId = userId,
-                RefreshToken = request.RefreshToken
-            };
-
             return Ok(await _accountService.RefreshTokenAsync(model, GenerateIPAddress()));
         }
     }

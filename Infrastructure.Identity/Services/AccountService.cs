@@ -174,7 +174,9 @@ namespace Infrastructure.Identity.Services
 
         public async Task<Response<TokenResponse>> RefreshTokenAsync(RefreshTokenRequest request, string ipAddress)
         {
-            var user = await _userManager.FindByIdAsync(request.UserId);
+            var claimPrincipal = GetPrincipalFromExpiredToken(request.Token);
+            var userId = claimPrincipal.FindFirstValue("uid");
+            var user = await _userManager.FindByIdAsync(userId);
             if (user is null)
             {
                 throw new ApiException("No user found");
@@ -256,6 +258,35 @@ namespace Infrastructure.Identity.Services
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+#pragma warning disable CA5404 // Do not disable token validation checks
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidAudience = _jwtSettings.Audience,
+                ValidIssuer = _jwtSettings.Issuer,
+                RoleClaimType = ClaimTypes.Role,
+                ClockSkew = TimeSpan.Zero,
+                ValidateLifetime = false
+            };
+#pragma warning restore CA5404 // Do not disable token validation checks
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                !jwtSecurityToken.Header.Alg.Equals(
+                    SecurityAlgorithms.HmacSha256,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ApiException("invalid token");
+            }
+
+            return principal;
         }
     }
 }
