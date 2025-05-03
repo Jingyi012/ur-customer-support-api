@@ -28,7 +28,8 @@ namespace Application.Mappings
             CreateMap<UpdateProductCommand, Product>();
             CreateMap<GetAllProductsQuery, GetAllProductsParameter>();
 
-            CreateMap<ProductCategory, ProductCategoryResponseDto>();
+            CreateMap<ProductCategory, ProductCategoryResponseDto>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => prefix + src.ImageUrl));
 
             CreateMap<Project, ProjectResponseDto>()
                 .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => prefix + img.ImageUrl).ToList()));

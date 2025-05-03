@@ -52,11 +52,19 @@ namespace Infrastructure.Persistence.Repository
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<IReadOnlyList<T>> GetAllAsync()
+        public async Task<IReadOnlyList<T>> GetAllAsync(IEnumerable<Expression<Func<T, object>>>? includes = null)
         {
-            return await _dbContext
-                 .Set<T>()
-                 .ToListAsync();
+            IQueryable<T> query = _dbContext.Set<T>();
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task<int> CountAsync(Expression<Func<T, bool>> filter = null)

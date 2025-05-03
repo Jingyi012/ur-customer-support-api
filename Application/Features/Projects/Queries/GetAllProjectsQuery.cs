@@ -2,8 +2,11 @@
 using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using AutoMapper;
+using Domain.Entities;
 using MediatR;
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,7 +50,7 @@ namespace Application.Features.Projects.Queries
             }
             else
             {
-                var projects = await _projectRepository.GetAllAsync();
+                var projects = await _projectRepository.GetAllAsync(new List<Expression<Func<Project, object>>> { projects => projects.Images });
                 var mappedProjects = _mapper.Map<List<ProjectResponseDto>>(projects);
 
                 return new Response<List<ProjectResponseDto>>(mappedProjects);

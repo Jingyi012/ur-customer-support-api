@@ -56,27 +56,6 @@ namespace Infrastructure.Identity
 
                     o.Events = new JwtBearerEvents
                     {
-                        OnAuthenticationFailed = async context =>
-                        {
-                            if (!context.Response.HasStarted)
-                            {
-                                context.Response.StatusCode = 401;
-                                context.Response.ContentType = "application/json";
-
-                                string result;
-                                if (context.Exception is SecurityTokenExpiredException)
-                                {
-                                    result = JsonConvert.SerializeObject(new Response<string>("Token has expired. Please log in again."));
-                                }
-                                else
-                                {
-                                    result = JsonConvert.SerializeObject(new Response<string>("Authentication failed."));
-                                }
-
-                                await context.Response.WriteAsync(result);
-                            }
-                        },
-
                         OnChallenge = async context =>
                         {
                             context.HandleResponse(); // Prevents default challenge response
