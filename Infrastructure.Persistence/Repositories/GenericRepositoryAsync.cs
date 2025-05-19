@@ -1,15 +1,16 @@
-﻿using Application.Interfaces;
-using Infrastructure.Persistence.Contexts;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Application.Interfaces;
+using Infrastructure.Persistence.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repository
 {
-    public class GenericRepositoryAsync<T> : IGenericRepositoryAsync<T> where T : class
+    public class GenericRepositoryAsync<T> : IGenericRepositoryAsync<T>
+        where T : class
     {
         private readonly ApplicationDbContext _dbContext;
 
@@ -21,6 +22,34 @@ namespace Infrastructure.Persistence.Repository
         public virtual async Task<T> GetByIdAsync(int id)
         {
             return await _dbContext.Set<T>().FindAsync(id);
+        }
+
+        public async Task<T> FirstOrDefaultAsync(
+            IEnumerable<Expression<Func<T, bool>>>? predicates = null,
+            IEnumerable<Expression<Func<T, object>>>? includes = null
+        )
+        {
+            IQueryable<T> query = _dbContext.Set<T>();
+
+            // Apply includes
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            // Apply filters
+            if (predicates != null)
+            {
+                foreach (var predicate in predicates)
+                {
+                    query = query.Where(predicate);
+                }
+            }
+
+            return await query.FirstOrDefaultAsync();
         }
 
         public async Task<IReadOnlyList<T>> GetPagedReponseAsync(int pageNumber, int pageSize)
@@ -52,7 +81,9 @@ namespace Infrastructure.Persistence.Repository
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<IReadOnlyList<T>> GetAllAsync(IEnumerable<Expression<Func<T, object>>>? includes = null)
+        public async Task<IReadOnlyList<T>> GetAllAsync(
+            IEnumerable<Expression<Func<T, object>>>? includes = null
+        )
         {
             IQueryable<T> query = _dbContext.Set<T>();
 

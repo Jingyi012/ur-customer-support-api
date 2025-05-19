@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
-using Application.Features.ProductCategory.Queries;
+using Application.Features.ProductCategories.Commands;
+using Application.Features.ProductCategories.Queries;
+using Application.Features.ProductImages.Commands;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace WebApi.Controllers.v1
 {
@@ -14,8 +14,35 @@ namespace WebApi.Controllers.v1
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] GetAllProductCategoryQuery query)
         {
-          
             return Ok(await Mediator.Send(query));
+        }
+
+        // POST api/<controller>
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CreateProductCategory([FromForm] CreateProductCategoryCommand command)
+        {
+            return Ok(await Mediator.Send(command));
+        }
+
+        // PUT api/<controller>/5
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProductCategory(int id, [FromForm] UpdateProductCategoryCommand command)
+        {
+            if (id != command.Id)
+            {
+                return BadRequest();
+            }
+            return Ok(await Mediator.Send(command));
+        }
+
+        // DELETE api/<controller>/5
+        [HttpDelete("{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteProductCategory(int id)
+        {
+            return Ok(await Mediator.Send(new DeleteProductCategoryByIdCommand { Id = id }));
         }
     }
 }

@@ -22,23 +22,23 @@ namespace Application.Mappings
         public GeneralProfile(string prefix)
         {
             CreateMap<Product, ProductResponseDto>()
-                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => prefix + img.ImageUrl).ToList()));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Where(img => !string.IsNullOrEmpty(img.ImageUrl)).Select(img => prefix + img.ImageUrl).ToList()));
 
             CreateMap<CreateProductCommand, Product>();
             CreateMap<UpdateProductCommand, Product>();
             CreateMap<GetAllProductsQuery, GetAllProductsParameter>();
 
             CreateMap<ProductCategory, ProductCategoryResponseDto>()
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => prefix + src.ImageUrl));
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.ImageUrl) ? prefix + src.ImageUrl : null));
 
             CreateMap<Project, ProjectResponseDto>()
-                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => prefix + img.ImageUrl).ToList()));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Where(img => !string.IsNullOrEmpty(img.ImageUrl)).Select(img => prefix + img.ImageUrl).ToList()));
             CreateMap<CreateProjectCommand, Project>();
             CreateMap<UpdateProjectCommand, Project>();
             CreateMap<GetAllProjectsQuery, GetAllProjectsParameter>();
 
             CreateMap<News, NewsResponseDto>()
-                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(img => prefix + img.ImageUrl).ToList()));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Where(img => !string.IsNullOrEmpty(img.ImageUrl)).Select(img => prefix + img.ImageUrl).ToList()));
             CreateMap<CreateNewsCommand, News>();
             CreateMap<UpdateNewsCommand, News>();
             CreateMap<GetAllNewsQuery, GetAllNewsParameter>();

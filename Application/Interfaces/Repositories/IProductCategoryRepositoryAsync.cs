@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Wrappers;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,5 +9,6 @@ namespace Application.Interfaces.Repositories
 {
     public interface IProductCategoryRepositoryAsync : IGenericRepositoryAsync<ProductCategory>
     {
+        Task<PagedResponse<List<ProductCategory>>> GetAllProductCategory(int pageNumber, int pageSize);
     }
 }

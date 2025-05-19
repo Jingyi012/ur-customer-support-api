@@ -15,5 +15,6 @@ namespace Application.Interfaces
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
         Task<int> CountAsync(Expression<Func<T, bool>> filter = null);
+        Task<T> FirstOrDefaultAsync(IEnumerable<Expression<Func<T, bool>>>? predicates = null, IEnumerable<Expression<Func<T, object>>>? includes = null);
     }
 }
