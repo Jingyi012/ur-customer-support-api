@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Identity.Seeds
 {
-    public static class DefaultSuperAdmin
+    public static class DefaultAdmin
     {
         public static async Task SeedAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
-            // Define the default super admin user
-            var superAdminEmail = "superadmin@gmail.com";
-            var existingUser = await userManager.FindByEmailAsync(superAdminEmail);
+            // Define the default admin user
+            var adminEmail = "admin@gmail.com";
+            var existingUser = await userManager.FindByEmailAsync(adminEmail);
 
             if (existingUser == null)
             {
                 var defaultUser = new ApplicationUser
                 {
-                    UserName = "superadmin",
-                    Email = superAdminEmail,
+                    UserName = "admin",
+                    Email = adminEmail,
                     EmailConfirmed = true,
                     PhoneNumberConfirmed = true
                 };
@@ -29,12 +29,12 @@ namespace Infrastructure.Identity.Seeds
                 if (createResult.Succeeded)
                 {
                     // Retrieve the newly created user to ensure it has an ID
-                    var newUser = await userManager.FindByEmailAsync(superAdminEmail);
+                    var newUser = await userManager.FindByEmailAsync(adminEmail);
 
                     if (newUser != null)
                     {
                         // Ensure roles exist before assigning
-                        foreach (var role in new[] { Roles.SuperAdmin })
+                        foreach (var role in new[] { Roles.Admin })
                         {
                             var roleName = role.ToString();
                             if (!await roleManager.RoleExistsAsync(roleName))
@@ -49,7 +49,7 @@ namespace Infrastructure.Identity.Seeds
                 {
                     // Log or handle user creation failure
                     var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-                    throw new System.Exception($"Failed to create super admin: {errors}");
+                    throw new System.Exception($"Failed to create admin: {errors}");
                 }
             }
         }

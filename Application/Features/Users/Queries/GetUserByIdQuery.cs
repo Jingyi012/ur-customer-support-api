@@ -26,7 +26,8 @@ namespace Application.Features.Users.Queries
 
         public async Task<Response<UserDto>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
-            return await _userService.GetUserByIdAsync(request.UserId);
+            var result = await _userService.GetUserByIdAsync(request.UserId);
+            return new Response<UserDto>(result);
         }
     }
 

@@ -64,7 +64,30 @@ namespace Infrastructure.Identity.Services
                 .ToListAsync();
         }
 
-        public async Task<Response<UserDto>> GetUserByIdAsync(string userId)
+        public async Task<List<UserSelectionDto>> GetAllUserIdAndNamesAsync()
+        {
+            return await _userManager.Users
+                .Select(user => new UserSelectionDto
+                {
+                    Id = user.Id,
+                    UserName = user.UserName
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<UserDto>> GetUsersByIdsAsync(List<string> userIds)
+        {
+            return await _userManager.Users
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    UserName = u.UserName
+                })
+                .ToListAsync();
+        }
+
+        public async Task<UserDto> GetUserByIdAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -80,7 +103,7 @@ namespace Infrastructure.Identity.Services
                 Roles = roles.ToList()
             };
 
-            return new Response<UserDto>(userDto);
+            return userDto;
         }
 
         public async Task<Response<string>> CreateUserAsync(RegisterRequest request)

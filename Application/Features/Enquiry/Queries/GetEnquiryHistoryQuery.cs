@@ -7,6 +7,7 @@ using AutoMapper;
 using Domain.Entities;
 using MediatR;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,12 +36,29 @@ namespace Application.Features.Enquiry.Queries
 
             var mappedEnquiryHistory = _mapper.Map<List<EnquiryHistoryResponseDto>>(enquiryHistory);
 
-            foreach(var item in mappedEnquiryHistory)
+            var userIds = mappedEnquiryHistory
+                .SelectMany(e => new[] { e.LastModifiedBy, e.AssignedTo })
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList();
+
+            var users = await _userService.GetUsersByIdsAsync(userIds);
+            var userDict = users.ToDictionary(u => u.Id, u => u.UserName);
+
+            foreach (var item in mappedEnquiryHistory)
             {
-                var user = await _userService.GetUserByIdAsync(item.LastModifiedBy);
-                if(user != null)
+                if (!string.IsNullOrWhiteSpace(item.LastModifiedBy) && userDict.TryGetValue(item.LastModifiedBy, out var modifiedByUsername))
                 {
-                    item.LastModifiedBy = user.Data.UserName;
+                    item.LastModifiedBy = modifiedByUsername;
+                }
+
+                if (!string.IsNullOrWhiteSpace(item.AssignedTo) && userDict.TryGetValue(item.AssignedTo, out var assignedUsername))
+                {
+                    item.AssignedTo = assignedUsername;
+                }
+                else
+                {
+                    item.AssignedTo = null;
                 }
             }
 

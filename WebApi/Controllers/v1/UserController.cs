@@ -54,8 +54,16 @@ namespace WebApi.Controllers.v1
         }
 
         // GET: api/<controller>
-        [HttpGet("options")]
+        [HttpGet("options/name")]
         public async Task<IActionResult> GetUserNames([FromQuery] GetAllUsersNameQuery query)
+        {
+
+            return Ok(await Mediator.Send(query));
+        }
+
+        // GET: api/<controller>
+        [HttpGet("options")]
+        public async Task<IActionResult> GetUserSelections([FromQuery] GetUserSelectionQuery query)
         {
 
             return Ok(await Mediator.Send(query));
